@@ -1,0 +1,97 @@
+--**************************The SQL Murder Mystry ******************************************
+
+--------------------------------------------------------------------------------------------
+-------Crime Report: on Problem Statement --------------------------------------------------
+-------(2018/01/15 ,Murder ,'SQL City')-----------------------------------------------------
+--------------------------------------------------------------------------------------------
+select * 
+from crime_scene_report 
+where date=20180115 and type='murder' and city='SQL City';
+      
+
+--------------------------------------------------------------------------------------------	  
+--*****2 Witnesses : From Report************************************************************
+-------1)lives at the last house on "Northwestern Dr"---------------------------------------
+-------2) Annabel, lives somewhere on "Franklin Ave"----------------------------------------
+--------------------------------------------------------------------------------------------
+select p.id,p.name,i.transcript
+from person as p join interview as i on p.id=i.person_id
+where p.id in
+	(
+		 select id
+		 from person
+		 where address_street_name='Northwestern Dr'
+		 order by address_number 
+		 desc limit 1 
+	)
+or p.id in 
+	(
+		 select id
+		 from person
+		 where p.address_street_name ="Franklin Ave" and name like "Annabel %"
+	)
+
+--------------------------------------------------------------------------------------------
+--***** Output :****************************************************************************
+------- He had a "Get Fit Now Gym" bag. The membership number on the bag started with "48Z". 
+------- Only gold members have those bags.--------------------------------------------------
+------- The man got into a car with a plate that included "H42W".---------------------------
+------- I saw the murder happen, and I recognized the killer -------------------------------
+------- from my gym when I was working out last week on January the 9th.--------------------
+--------------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------------
+--*****Suspect on :Membership Clue & Plate *************************************************
+-------(Gold & membership number on the bag started with "48Z")-----------------------------
+-------(car with a plate that included "H42W")----------------------------------------------
+--------------------------------------------------------------------------------------------
+select p.id,p.name
+from person as p
+join drivers_license as dl on p.license_id=dl.id
+join get_fit_now_member as gfnm on gfnm.person_id=p.id
+where gfnm.membership_status="gold" and dl.plate_number like "%H42W%" and gfnm.id like "%48Z%";
+
+---------------------------------------------------------------------------------------------
+--*****Output = id=67318 & name=Jeremy Bowers ***********************************************
+---------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------
+--*****Muderer Interview: From Suspect Interview ********************************************
+---------------------------------------------------------------------------------------------
+select *
+from interview
+where person_id in
+	(
+		select p.id
+		from person as p
+		join drivers_license as dl on p.license_id=dl.id
+		join get_fit_now_member as gfnm on gfnm.person_id=p.id
+		where gfnm.membership_status="gold" and dl.plate_number like "%H42W%"
+	 );
+--------------------------------------------------------------------------------------------
+--*****Output ******************************************************************************
+-------( I was hired by a woman with a lot of money.----------------------------------------
+--------I don't know her name but I know she's around 5'5" (65") or 5'7" (67").------------- 
+--------She has red hair and she drives a Tesla Model S.------------------------------------
+--------I know that she attended the SQL Symphony Concert 3 times in December 2017)---------
+--------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------
+--********************Murder Mater Mind: From Muderer Interview ****************************
+--------------------------------------------------------------------------------------------
+select p.id,p.name
+from person as p
+join drivers_license as dl on p.license_id=dl.id
+join facebook_event_checkin as fec on p.id=fec.person_id
+join income as inc on inc.ssn=p.ssn
+where fec.event_name="SQL Symphony Concert" and
+	dl.hair_color="red" and 
+	dl.car_make="Tesla" and dl.car_model="Model S" and
+	dl.height between 65 and 67
+	order by inc.annual_income desc limit 1;
+
+---------------------------------------------------------------------------------------------
+--******Killer is : Miranda Priestly ********************************************************
+---------------------------------------------------------------------------------------------
